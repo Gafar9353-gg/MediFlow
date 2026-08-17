@@ -18,6 +18,7 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as MedicinesRouteImport } from './routes/medicines'
 import { Route as PurchaseRouteImport } from './routes/purchase'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as SupplierPaymentRouteImport } from './routes/supplier-payment'
 import { Route as UsersRouteImport } from './routes/users'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,11 @@ const ReportsRoute = ReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupplierPaymentRoute = SupplierPaymentRouteImport.update({
+  id: '/supplier-payment',
+  path: '/supplier-payment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/medicines': typeof MedicinesRoute
   '/purchase': typeof PurchaseRoute
   '/reports': typeof ReportsRoute
+  '/supplier-payment': typeof SupplierPaymentRoute
   '/users': typeof UsersRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/medicines': typeof MedicinesRoute
   '/purchase': typeof PurchaseRoute
   '/reports': typeof ReportsRoute
+  '/supplier-payment': typeof SupplierPaymentRoute
   '/users': typeof UsersRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/medicines': typeof MedicinesRoute
   '/purchase': typeof PurchaseRoute
   '/reports': typeof ReportsRoute
+  '/supplier-payment': typeof SupplierPaymentRoute
   '/users': typeof UsersRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/purchase'
     | '/reports'
+    | '/supplier-payment'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/purchase'
     | '/reports'
+    | '/supplier-payment'
     | '/users'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/purchase'
     | '/reports'
+    | '/supplier-payment'
     | '/users'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   MedicinesRoute: typeof MedicinesRoute
   PurchaseRoute: typeof PurchaseRoute
   ReportsRoute: typeof ReportsRoute
+  SupplierPaymentRoute: typeof SupplierPaymentRoute
   UsersRoute: typeof UsersRoute
 }
 
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/supplier-payment': {
+      id: '/supplier-payment'
+      path: '/supplier-payment'
+      fullPath: '/supplier-payment'
+      preLoaderRoute: typeof SupplierPaymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/users': {
       id: '/users'
       path: '/users'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   MedicinesRoute: MedicinesRoute,
   PurchaseRoute: PurchaseRoute,
   ReportsRoute: ReportsRoute,
+  SupplierPaymentRoute: SupplierPaymentRoute,
   UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport

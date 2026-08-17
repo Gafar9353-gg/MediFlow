@@ -88,7 +88,10 @@ interface ErpContextValue {
     invoiceNumber: string;
     date: string;
     items: PurchaseItem[];
+    isPaid?: boolean;
   }) => Purchase;
+  updatePurchase: (id: string, patch: Partial<Purchase>) => void;
+  addMedicine: (medicine: Omit<Medicine, "id">) => Medicine;
   updateMedicine: (id: string, patch: Partial<Medicine>) => void;
   deleteMedicine: (id: string) => void;
   addBill: (input: {
@@ -194,6 +197,7 @@ export function ErpProvider({ children }: { children: ReactNode }) {
         gstAmount: round(gstAmount),
         total: round(subtotal + gstAmount),
         createdBy: currentUser?.username ?? "system",
+        isPaid: input.isPaid ?? false,
       };
       setData((prev) => {
         const medicines = [...prev.medicines];
@@ -231,6 +235,25 @@ export function ErpProvider({ children }: { children: ReactNode }) {
     },
     [currentUser],
   );
+
+  const updatePurchase = useCallback<ErpContextValue["updatePurchase"]>((id, patch) => {
+    setData((prev) => ({
+      ...prev,
+      purchases: prev.purchases.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }));
+  }, []);
+
+  const addMedicine = useCallback<ErpContextValue["addMedicine"]>((input) => {
+    const medicine: Medicine = {
+      id: uid(),
+      ...input,
+    };
+    setData((prev) => ({
+      ...prev,
+      medicines: [...prev.medicines, medicine],
+    }));
+    return medicine;
+  }, []);
 
   const updateMedicine = useCallback<ErpContextValue["updateMedicine"]>((id, patch) => {
     setData((prev) => ({
@@ -352,6 +375,8 @@ export function ErpProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       addPurchase,
+      updatePurchase,
+      addMedicine,
       updateMedicine,
       deleteMedicine,
       addBill,
@@ -371,6 +396,8 @@ export function ErpProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       addPurchase,
+      updatePurchase,
+      addMedicine,
       updateMedicine,
       deleteMedicine,
       addBill,

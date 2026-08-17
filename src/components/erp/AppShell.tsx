@@ -23,13 +23,13 @@ import type { Role } from "@/lib/erp-types";
 const NAV: { to: string; label: string; icon: typeof Pill; roles: Role[] }[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "staff"] },
   { to: "/purchase", label: "Purchase", icon: ShoppingCart, roles: ["admin", "staff"] },
+  { to: "/supplier-payment", label: "Supplier Payment", icon: Receipt, roles: ["admin", "staff"] },
   { to: "/medicines", label: "Medicines", icon: Pill, roles: ["admin", "staff"] },
   { to: "/inventory", label: "Inventory", icon: Boxes, roles: ["admin", "staff"] },
   { to: "/billing", label: "Billing", icon: Receipt, roles: ["admin", "staff"] },
   { to: "/customers", label: "Customers", icon: Users, roles: ["admin"] },
   { to: "/reports", label: "Reports", icon: BarChart3, roles: ["admin"] },
   { to: "/users", label: "User Management", icon: UserCog, roles: ["admin"] },
-  { to: "/backup", label: "Backup", icon: DatabaseBackup, roles: ["admin"] },
 ];
 
 export function AppShell({

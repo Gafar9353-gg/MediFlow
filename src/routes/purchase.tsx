@@ -92,7 +92,6 @@ function PurchasePage() {
     if (!(Number(line.sellingPrice) > 0)) errs.push("Selling price must be greater than 0");
     if (Number(line.gst) < 0) errs.push("GST % cannot be negative");
     if (!(Number(line.quantity) > 0)) errs.push("Quantity must be at least 1");
-    if (!line.rack.trim()) errs.push("Rack/Shelf location is required");
     setErrors(errs);
     if (errs.length) return;
 
@@ -110,7 +109,7 @@ function PurchasePage() {
         sellingPrice: Number(line.sellingPrice),
         gst: Number(line.gst),
         quantity: Number(line.quantity),
-        rack: line.rack.trim(),
+        rack: line.rack.trim() || "—",
       },
     ]);
     setLine({ ...emptyLine });
@@ -230,7 +229,7 @@ function PurchasePage() {
               onChange={(v) => setLine({ ...line, expiryDate: v })}
             />
             <Field
-              label="Rack / Shelf *"
+              label="Rack / Shelf"
               value={line.rack}
               onChange={(v) => setLine({ ...line, rack: v })}
             />

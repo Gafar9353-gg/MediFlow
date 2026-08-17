@@ -43,6 +43,7 @@ export interface Purchase {
   gstAmount: number;
   total: number;
   createdBy: string;
+  isPaid?: boolean;
 }
 
 export interface BillItem {
