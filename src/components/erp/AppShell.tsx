@@ -8,10 +8,10 @@ import {
   Users,
   BarChart3,
   UserCog,
-  DatabaseBackup,
   LogOut,
   Menu,
   Stethoscope,
+  User as UserIcon,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,17 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useErp } from "@/lib/erp-store";
 import type { Role } from "@/lib/erp-types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const NAV: { to: string; label: string; icon: typeof Pill; roles: Role[] }[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "staff"] },
@@ -47,7 +58,15 @@ export function AppShell({
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const items = NAV.filter((n) => currentUser && n.roles.includes(currentUser.role));
+
+  const isPurchaseTab = pathname === "/purchase";
+
+  function handleLogout() {
+    logout();
+    navigate({ to: "/" });
+  }
 
   return (
     <div className="flex min-h-screen bg-muted/40">
@@ -87,26 +106,19 @@ export function AppShell({
             );
           })}
         </nav>
-        <div className="border-t border-sidebar-border p-3">
-          <div className="mb-2 flex items-center justify-between gap-2 px-1">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{currentUser?.username}</p>
-              <Badge variant="secondary" className="mt-1 capitalize">
-                {currentUser?.role}
-              </Badge>
-            </div>
+        
+        {/* Hide Sign out button from sidebar in purchase tab */}
+        {!isPurchaseTab && (
+          <div className="border-t border-sidebar-border p-3">
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2"
+              onClick={() => setConfirmOpen(true)}
+            >
+              <LogOut className="size-4" /> Sign out
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2"
-            onClick={() => {
-              logout();
-              navigate({ to: "/" });
-            }}
-          >
-            <LogOut className="size-4" /> Sign out
-          </Button>
-        </div>
+        )}
       </aside>
 
       {open && (
@@ -128,14 +140,60 @@ export function AppShell({
           >
             <Menu className="size-5" />
           </Button>
-          <div className="min-w-0 flex-1">
+
+          {/* User Account Info on the LEFT side of the top bar */}
+          <div className="flex items-center gap-2 border-r pr-4">
+            <div className="flex size-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
+              <UserIcon className="size-4" />
+            </div>
+            <div className="hidden sm:block text-left leading-none">
+              <p className="text-sm font-semibold">{currentUser?.username}</p>
+              <Badge variant="outline" className="mt-0.5 px-1 py-0 text-[10px] uppercase tracking-wide">
+                {currentUser?.role}
+              </Badge>
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1 pl-2">
             <h1 className="truncate text-lg font-semibold">{title}</h1>
             {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
           </div>
-          <div className="flex items-center gap-2">{actions}</div>
+
+          <div className="flex items-center gap-2">
+            {actions}
+            {/* Show Sign out button on top bar if in purchase tab */}
+            {isPurchaseTab && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-muted-foreground hover:text-foreground"
+                onClick={() => setConfirmOpen(true)}
+              >
+                <LogOut className="size-4" /> Sign out
+              </Button>
+            )}
+          </div>
         </header>
         <main className="min-w-0 flex-1 p-4 lg:p-6">{children}</main>
       </div>
+
+      {/* Confirmation Dialog for Log out */}
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Any unsaved changes might be lost. You will need to sign in again to access the store ERP.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleLogout}>
+              Yes, Log out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -48,8 +48,10 @@ function LoginPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 text-slate-100">
+        <Stethoscope className="size-12 animate-pulse text-emerald-400 mb-4" />
+        <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">MediStore</h2>
+        <p className="text-slate-500 text-xs mt-1">Loading secure environment...</p>
       </div>
     );
   }

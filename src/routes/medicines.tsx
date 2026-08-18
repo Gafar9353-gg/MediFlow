@@ -152,7 +152,7 @@ function MedicinesPage() {
                   <TableHead>Batch</TableHead>
                   <TableHead>Expiry</TableHead>
                   <TableHead className="text-right">Purchase</TableHead>
-                  <TableHead className="text-right">Selling</TableHead>
+                  <TableHead className="text-right">MRP</TableHead>
                   <TableHead className="text-right">GST</TableHead>
                   <TableHead className="text-right">Stock</TableHead>
                   <TableHead>Rack</TableHead>
@@ -311,7 +311,7 @@ function MedicinesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Selling Price *</Label>
+              <Label>MRP *</Label>
               <Input
                 type="number"
                 min={0}
@@ -399,7 +399,7 @@ function MedicinesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Selling price</Label>
+                <Label>MRP</Label>
                 <Input
                   type="number"
                   value={editing.sellingPrice}

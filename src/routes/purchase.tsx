@@ -89,7 +89,7 @@ function PurchasePage() {
     if (!line.batchNo.trim()) errs.push("Batch number is required");
     if (!line.expiryDate) errs.push("Expiry date is required");
     if (!(Number(line.purchasePrice) > 0)) errs.push("Purchase price must be greater than 0");
-    if (!(Number(line.sellingPrice) > 0)) errs.push("Selling price must be greater than 0");
+    if (!(Number(line.sellingPrice) > 0)) errs.push("MRP must be greater than 0");
     if (Number(line.gst) < 0) errs.push("GST % cannot be negative");
     if (!(Number(line.quantity) > 0)) errs.push("Quantity must be at least 1");
     setErrors(errs);
@@ -240,7 +240,7 @@ function PurchasePage() {
               onChange={(v) => setLine({ ...line, purchasePrice: v })}
             />
             <Field
-              label="Selling price *"
+              label="MRP *"
               type="number"
               value={line.sellingPrice}
               onChange={(v) => setLine({ ...line, sellingPrice: v })}
@@ -285,7 +285,7 @@ function PurchasePage() {
                 <TableHead>Expiry</TableHead>
                 <TableHead>Rack</TableHead>
                 <TableHead className="text-right">Purchase</TableHead>
-                <TableHead className="text-right">Selling</TableHead>
+                <TableHead className="text-right">MRP</TableHead>
                 <TableHead className="text-right">GST</TableHead>
                 <TableHead className="text-right">Qty</TableHead>
                 <TableHead className="text-right">Amount</TableHead>

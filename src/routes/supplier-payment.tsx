@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CreditCard, Check, X } from "lucide-react";
+import { CreditCard, Check } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/erp/AppShell";
 import { Protected } from "@/components/erp/Protected";
@@ -42,10 +42,10 @@ function SupplierPaymentPage() {
     p.invoiceNumber.toLowerCase().includes(query.trim().toLowerCase())
   );
 
-  function togglePaymentStatus(purchase: Purchase) {
-    const nextStatus = !purchase.isPaid;
-    updatePurchase(purchase.id, { isPaid: nextStatus });
-    toast.success(`Purchase ${purchase.invoiceNumber} status updated to ${nextStatus ? "Paid" : "Not Paid"}`);
+  function markAsPaid(purchase: Purchase) {
+    if (purchase.isPaid) return; // already paid — no action
+    updatePurchase(purchase.id, { isPaid: true });
+    toast.success(`Purchase ${purchase.invoiceNumber} marked as Paid`);
   }
 
   return (
@@ -90,18 +90,24 @@ function SupplierPaymentPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        size="sm"
-                        variant={p.isPaid ? "outline" : "default"}
-                        className={p.isPaid ? "" : "bg-emerald-600 hover:bg-emerald-500 text-slate-50"}
-                        onClick={() => togglePaymentStatus(p)}
-                      >
-                        {p.isPaid ? (
-                          <span className="flex items-center gap-1"><X className="size-3.5" /> Mark Unpaid</span>
-                        ) : (
-                          <span className="flex items-center gap-1"><Check className="size-3.5" /> Mark Paid</span>
-                        )}
-                      </Button>
+                      {p.isPaid ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled
+                          className="cursor-not-allowed opacity-60"
+                        >
+                          <span className="flex items-center gap-1"><Check className="size-3.5 text-emerald-500" /> Paid ✓</span>
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-slate-50"
+                          onClick={() => markAsPaid(p)}
+                        >
+                          <span className="flex items-center gap-1"><CreditCard className="size-3.5" /> Mark as Paid</span>
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
