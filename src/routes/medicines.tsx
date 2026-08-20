@@ -37,6 +37,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { inr, useErp, LOW_STOCK } from "@/lib/erp-store";
 import type { Medicine } from "@/lib/erp-types";
+import { MEDICINE_CATEGORIES, type MedicineCategory } from "@/lib/erp-types";
 
 export const Route = createFileRoute("/medicines")({
   head: () => ({
@@ -56,6 +57,7 @@ export const Route = createFileRoute("/medicines")({
 
 const emptyMedicine = {
   name: "",
+  category: "Tablet" as MedicineCategory,
   batchNo: "",
   expiryDate: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
   purchasePrice: 0,
@@ -149,6 +151,7 @@ function MedicinesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead>Batch</TableHead>
                   <TableHead>Expiry</TableHead>
                   <TableHead className="text-right">Purchase</TableHead>
@@ -163,6 +166,9 @@ function MedicinesPage() {
                 {rows.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell className="font-medium">{m.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{m.category || "—"}</Badge>
+                    </TableCell>
                     <TableCell>{m.batchNo}</TableCell>
                     <TableCell>{m.expiryDate}</TableCell>
                     <TableCell className="text-right">{inr(m.purchasePrice)}</TableCell>
@@ -216,7 +222,7 @@ function MedicinesPage() {
                 ))}
                 {rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center text-muted-foreground">
                       No medicines found. Use the Add Medicine button to create one.
                     </TableCell>
                   </TableRow>
@@ -275,6 +281,18 @@ function MedicinesPage() {
                 onChange={(e) => setNewMed({ ...newMed, name: e.target.value })}
                 placeholder="e.g. Ibuprofen 400mg"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Category *</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={newMed.category}
+                onChange={(e) => setNewMed({ ...newMed, category: e.target.value as MedicineCategory })}
+              >
+                {MEDICINE_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label>Batch Number *</Label>
@@ -367,6 +385,18 @@ function MedicinesPage() {
                   value={editing.name}
                   onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  value={editing.category || "Tablet"}
+                  onChange={(e) => setEditing({ ...editing, category: e.target.value as MedicineCategory })}
+                >
+                  {MEDICINE_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label>Batch No</Label>

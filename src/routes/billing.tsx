@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { inr, useErp } from "@/lib/erp-store";
 import type { Bill, BillItem } from "@/lib/erp-types";
 
@@ -77,6 +78,7 @@ function BillingPage() {
         {
           medicineId: m.id,
           name: m.name,
+          category: m.category || "Tablet",
           batchNo: m.batchNo,
           rack: m.rack,
           price: m.sellingPrice,
@@ -163,7 +165,7 @@ function BillingPage() {
                     >
                       <span className="font-medium">{m.name}</span>
                       <span className="text-xs text-muted-foreground">
-                        Rack {m.rack} • Stock {m.stock} • {inr(m.sellingPrice)}
+                        {m.category || ""} • Rack {m.rack} • Stock {m.stock} • {inr(m.sellingPrice)}
                       </span>
                       <Plus className="size-4" />
                     </button>
@@ -185,6 +187,7 @@ function BillingPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Medicine</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead>Batch</TableHead>
                     <TableHead>Rack</TableHead>
                     <TableHead className="text-right">Price</TableHead>
@@ -198,6 +201,9 @@ function BillingPage() {
                   {items.map((i) => (
                     <TableRow key={i.medicineId}>
                       <TableCell className="font-medium">{i.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{i.category}</Badge>
+                      </TableCell>
                       <TableCell>{i.batchNo}</TableCell>
                       <TableCell>{i.rack}</TableCell>
                       <TableCell className="text-right">{inr(i.price)}</TableCell>
@@ -227,7 +233,7 @@ function BillingPage() {
                   ))}
                   {items.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground">
+                       <TableCell colSpan={9} className="text-center text-muted-foreground">
                         No items in this bill
                       </TableCell>
                     </TableRow>
@@ -328,7 +334,7 @@ function InvoiceView({ bill }: { bill: Bill }) {
         </div>
         <div id="invoice" className="mx-auto max-w-2xl">
           <div className="border-b pb-3 text-center">
-            <h2 className="text-xl font-bold">MediStore Pharmacy</h2>
+            <h2 className="text-xl font-bold">Vasuki Clinic</h2>
             <p className="text-xs text-muted-foreground">GST Invoice</p>
           </div>
           <div className="grid grid-cols-2 gap-2 py-3 text-sm">
@@ -356,6 +362,7 @@ function InvoiceView({ bill }: { bill: Bill }) {
             <thead>
               <tr className="border-y text-left">
                 <th className="py-2">Item</th>
+                <th>Category</th>
                 <th>Batch</th>
                 <th>Rack</th>
                 <th className="text-right">Rate</th>
@@ -368,6 +375,7 @@ function InvoiceView({ bill }: { bill: Bill }) {
               {bill.items.map((i) => (
                 <tr key={i.medicineId} className="border-b">
                   <td className="py-2">{i.name}</td>
+                  <td>{i.category}</td>
                   <td>{i.batchNo}</td>
                   <td>{i.rack}</td>
                   <td className="text-right">{inr(i.price)}</td>
@@ -393,7 +401,7 @@ function InvoiceView({ bill }: { bill: Bill }) {
             </div>
           </div>
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Thank you for shopping with us. Get well soon!
+            Thank you for visiting Vasuki Clinic. Get well soon!
           </p>
         </div>
       </CardContent>

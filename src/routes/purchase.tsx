@@ -20,6 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { inr, uid, useErp } from "@/lib/erp-store";
 import type { PurchaseItem } from "@/lib/erp-types";
+import { MEDICINE_CATEGORIES, type MedicineCategory } from "@/lib/erp-types";
 
 export const Route = createFileRoute("/purchase")({
   head: () => ({
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/purchase")({
 const emptyLine = {
   medicineId: "",
   name: "",
+  category: "Tablet" as MedicineCategory,
   batchNo: "",
   expiryDate: "",
   purchasePrice: "",
@@ -72,6 +74,7 @@ function PurchasePage() {
     setLine({
       medicineId: m.id,
       name: m.name,
+      category: m.category || "Tablet",
       batchNo: m.batchNo,
       expiryDate: m.expiryDate,
       purchasePrice: String(m.purchasePrice),
@@ -103,6 +106,7 @@ function PurchasePage() {
       {
         medicineId: line.medicineId || existing?.id || uid(),
         name: line.name.trim(),
+        category: line.category,
         batchNo: line.batchNo.trim(),
         expiryDate: line.expiryDate,
         purchasePrice: Number(line.purchasePrice),
@@ -221,6 +225,19 @@ function PurchasePage() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Field label="Name *" value={line.name} onChange={(v) => setLine({ ...line, name: v })} />
+            <div className="space-y-2">
+              <Label htmlFor="f-category">Category *</Label>
+              <select
+                id="f-category"
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={line.category}
+                onChange={(e) => setLine({ ...line, category: e.target.value as MedicineCategory })}
+              >
+                {MEDICINE_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
             <Field label="Batch No *" value={line.batchNo} onChange={(v) => setLine({ ...line, batchNo: v })} />
             <Field
               label="Expiry date *"
@@ -281,6 +298,7 @@ function PurchasePage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Medicine</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Batch</TableHead>
                 <TableHead>Expiry</TableHead>
                 <TableHead>Rack</TableHead>
@@ -305,6 +323,9 @@ function PurchasePage() {
                       <Badge className="ml-2">New</Badge>
                     )}
                   </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{i.category}</Badge>
+                  </TableCell>
                   <TableCell>{i.batchNo}</TableCell>
                   <TableCell>{i.expiryDate}</TableCell>
                   <TableCell>{i.rack}</TableCell>
@@ -327,7 +348,7 @@ function PurchasePage() {
               ))}
               {items.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center text-muted-foreground">
                     No items added yet
                   </TableCell>
                 </TableRow>

@@ -13,6 +13,7 @@ import type {
   Customer,
   ErpData,
   Medicine,
+  MedicineCategory,
   Purchase,
   PurchaseItem,
   Role,
@@ -43,38 +44,7 @@ function seedData(): ErpData {
     active: true,
     createdAt: today(),
   };
-  const mk = (
-    name: string,
-    batchNo: string,
-    expiryDays: number,
-    pp: number,
-    sp: number,
-    gst: number,
-    stock: number,
-    rack: string,
-  ): Medicine => ({
-    id: uid(),
-    name,
-    batchNo,
-    expiryDate: new Date(Date.now() + expiryDays * 86400000).toISOString().slice(0, 10),
-    purchasePrice: pp,
-    sellingPrice: sp,
-    gst,
-    stock,
-    rack,
-  });
-  const medicines: Medicine[] = [
-    mk("Paracetamol 500mg", "PC-1042", 400, 12, 18, 5, 120, "A-1"),
-    mk("Amoxicillin 250mg", "AM-2210", 180, 45, 62, 12, 40, "A-2"),
-    mk("Cetirizine 10mg", "CT-3301", 20, 8, 14, 5, 8, "B-1"),
-    mk("Metformin 500mg", "MF-5510", 320, 22, 35, 12, 75, "B-3"),
-    mk("Cough Syrup 100ml", "CS-7781", 95, 60, 88, 18, 6, "C-2"),
-  ];
-  const customers: Customer[] = [
-    { id: uid(), name: "Ravi Kumar", phone: "9876543210", createdAt: today() },
-    { id: uid(), name: "Anita Sharma", phone: "9812345678", createdAt: today() },
-  ];
-  return { users: [admin, staff], medicines, purchases: [], bills: [], customers };
+  return { users: [admin, staff], medicines: [], purchases: [], bills: [], customers: [] };
 }
 
 interface ErpContextValue {
@@ -219,6 +189,7 @@ export function ErpProvider({ children }: { children: ReactNode }) {
             medicines.push({
               id: item.medicineId,
               name: item.name,
+              category: item.category,
               batchNo: item.batchNo,
               expiryDate: item.expiryDate,
               purchasePrice: item.purchasePrice,

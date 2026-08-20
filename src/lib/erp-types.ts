@@ -1,5 +1,11 @@
 export type Role = "admin" | "staff";
 
+export type MedicineCategory = "Tablet" | "Capsule" | "Syrup" | "Injection" | "Ointment" | "Drops" | "Powder" | "Other";
+
+export const MEDICINE_CATEGORIES: MedicineCategory[] = [
+  "Tablet", "Capsule", "Syrup", "Injection", "Ointment", "Drops", "Powder", "Other",
+];
+
 export interface User {
   id: string;
   username: string;
@@ -12,6 +18,7 @@ export interface User {
 export interface Medicine {
   id: string;
   name: string;
+  category: MedicineCategory;
   batchNo: string;
   expiryDate: string;
   purchasePrice: number;
@@ -24,6 +31,7 @@ export interface Medicine {
 export interface PurchaseItem {
   medicineId: string;
   name: string;
+  category: MedicineCategory;
   batchNo: string;
   expiryDate: string;
   purchasePrice: number;
@@ -49,6 +57,7 @@ export interface Purchase {
 export interface BillItem {
   medicineId: string;
   name: string;
+  category: MedicineCategory;
   batchNo: string;
   rack: string;
   price: number;

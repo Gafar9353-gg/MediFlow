@@ -57,14 +57,16 @@ function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-900 px-4 py-12">
-      {/* Medical-themed background elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(14,165,233,0.15),rgba(255,255,255,0))]" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30" />
-      
-      {/* Glowing accents */}
-      <div className="absolute top-1/4 left-1/4 -z-10 h-72 w-72 rounded-full bg-emerald-500/10 blur-[128px]" />
-      <div className="absolute bottom-1/4 right-1/4 -z-10 h-72 w-72 rounded-full bg-sky-500/10 blur-[128px]" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
+      {/* Background image */}
+      <img
+        src="/new.jpeg"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-slate-900/75" />
 
       <Card className="relative z-10 w-full max-w-sm border-slate-800 bg-slate-950/80 text-slate-100 shadow-2xl backdrop-blur-xl">
         <CardHeader className="items-center text-center pb-2">
