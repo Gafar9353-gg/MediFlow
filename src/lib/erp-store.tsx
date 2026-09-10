@@ -20,38 +20,20 @@ import type {
   User,
 } from "./erp-types";
 
-const STORAGE_KEY = "medstore-erp-v1";
-const SESSION_KEY = "medstore-erp-session";
+const SESSION_KEY = "medstore-erp-token";
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
-
 const today = () => new Date().toISOString().slice(0, 10);
 
 function seedData(): ErpData {
-  const admin: User = {
-    id: uid(),
-    username: "admin",
-    password: "admin123",
-    role: "admin",
-    active: true,
-    createdAt: today(),
-  };
-  const staff: User = {
-    id: uid(),
-    username: "staff",
-    password: "staff123",
-    role: "staff",
-    active: true,
-    createdAt: today(),
-  };
-  return { users: [admin, staff], medicines: [], purchases: [], bills: [], customers: [] };
+  return { users: [], medicines: [], purchases: [], bills: [], customers: [] };
 }
 
 interface ErpContextValue {
   ready: boolean;
   data: ErpData;
   currentUser: User | null;
-  login: (username: string, password: string) => { ok: boolean; error?: string };
+  login: (username: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   addPurchase: (input: {
     supplierName: string;
@@ -84,65 +66,78 @@ interface ErpContextValue {
 const ErpContext = createContext<ErpContextValue | null>(null);
 
 export function ErpProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<ErpData>(() => ({
-    users: [],
-    medicines: [],
-    purchases: [],
-    bills: [],
-    customers: [],
-  }));
+  const [data, setData] = useState<ErpData>(seedData());
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
 
+  // Helper to fetch with token
+  const apiFetch = async (url: string, options: RequestInit = {}) => {
+    const token = window.localStorage.getItem(SESSION_KEY);
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+  };
+
   useEffect(() => {
-    let loaded: ErpData | null = null;
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) loaded = JSON.parse(raw) as ErpData;
-    } catch {
-      loaded = null;
+    async function init() {
+      const token = window.localStorage.getItem(SESSION_KEY);
+      if (token) {
+        try {
+          const vRes = await apiFetch("/api/auth/verify");
+          if (vRes.ok) {
+            const vData = await vRes.json();
+            setCurrentUser(vData.user);
+            const sRes = await apiFetch("/api/sync");
+            if (sRes.ok) {
+              const sData = await sRes.json();
+              setData(sData);
+            }
+          } else {
+            window.localStorage.removeItem(SESSION_KEY);
+          }
+        } catch (e) {
+          console.error("Failed to sync from backend", e);
+        }
+      }
+      setReady(true);
     }
-    const initial = loaded && Array.isArray(loaded.users) && loaded.users.length ? loaded : seedData();
-    setData(initial);
-    try {
-      const sessionId = window.localStorage.getItem(SESSION_KEY);
-      const found = sessionId ? initial.users.find((u) => u.id === sessionId) : null;
-      if (found && found.active) setCurrentUser(found);
-    } catch {
-      /* ignore */
-    }
-    setReady(true);
+    init();
   }, []);
 
-  useEffect(() => {
-    if (!ready) return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      /* ignore */
-    }
-  }, [data, ready]);
-
-  const login = useCallback<ErpContextValue["login"]>(
-    (username, password) => {
-      const user = data.users.find(
-        (u) => u.username.toLowerCase() === username.trim().toLowerCase(),
-      );
-      if (!user || user.password !== password) return { ok: false, error: "Invalid username or password" };
-      if (!user.active) return { ok: false, error: "This account is deactivated" };
-      setCurrentUser(user);
+  const login = useCallback(
+    async (username: string, password: string): Promise<{ ok: boolean; error?: string }> => {
       try {
-        window.localStorage.setItem(SESSION_KEY, user.id);
-      } catch {
-        /* ignore */
+        const res = await apiFetch("/api/login", {
+          method: "POST",
+          body: JSON.stringify({ username, password }),
+        });
+        const json = await res.json();
+        if (!res.ok) return { ok: false, error: json.error || "Login failed" };
+        
+        window.localStorage.setItem(SESSION_KEY, json.token);
+        setCurrentUser(json.user);
+        
+        // Sync data after login
+        const sRes = await apiFetch("/api/sync");
+        if (sRes.ok) {
+          setData(await sRes.json());
+        }
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: "Network error" };
       }
-      return { ok: true };
     },
-    [data.users],
+    []
   );
 
   const logout = useCallback(() => {
     setCurrentUser(null);
+    setData(seedData());
     try {
       window.localStorage.removeItem(SESSION_KEY);
     } catch {
@@ -162,16 +157,18 @@ export function ErpProvider({ children }: { children: ReactNode }) {
         supplierName: input.supplierName,
         invoiceNumber: input.invoiceNumber,
         date: input.date,
-        items: input.items,
+        items: input.items.map(i => ({...i, id: uid()})) as any,
         subtotal: round(subtotal),
         gstAmount: round(gstAmount),
         total: round(subtotal + gstAmount),
         createdBy: currentUser?.username ?? "system",
         isPaid: input.isPaid ?? false,
       };
+      
+      // Update locally
       setData((prev) => {
         const medicines = [...prev.medicines];
-        for (const item of purchase.items) {
+        for (const item of input.items) {
           const idx = medicines.findIndex((m) => m.id === item.medicineId);
           const existing = idx >= 0 ? medicines[idx] : undefined;
           if (existing) {
@@ -202,9 +199,16 @@ export function ErpProvider({ children }: { children: ReactNode }) {
         }
         return { ...prev, medicines, purchases: [purchase, ...prev.purchases] };
       });
+
+      // Update remotely
+      apiFetch("/api/purchases", {
+        method: "POST",
+        body: JSON.stringify(purchase)
+      }).catch(console.error);
+
       return purchase;
     },
-    [currentUser],
+    [currentUser]
   );
 
   const updatePurchase = useCallback<ErpContextValue["updatePurchase"]>((id, patch) => {
@@ -212,6 +216,10 @@ export function ErpProvider({ children }: { children: ReactNode }) {
       ...prev,
       purchases: prev.purchases.map((p) => (p.id === id ? { ...p, ...patch } : p)),
     }));
+    apiFetch(`/api/purchases/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(patch)
+    }).catch(console.error);
   }, []);
 
   const addMedicine = useCallback<ErpContextValue["addMedicine"]>((input) => {
@@ -223,6 +231,10 @@ export function ErpProvider({ children }: { children: ReactNode }) {
       ...prev,
       medicines: [...prev.medicines, medicine],
     }));
+    apiFetch("/api/medicines", {
+      method: "POST",
+      body: JSON.stringify(medicine)
+    }).catch(console.error);
     return medicine;
   }, []);
 
@@ -231,10 +243,15 @@ export function ErpProvider({ children }: { children: ReactNode }) {
       ...prev,
       medicines: prev.medicines.map((m) => (m.id === id ? { ...m, ...patch } : m)),
     }));
+    apiFetch(`/api/medicines/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(patch)
+    }).catch(console.error);
   }, []);
 
   const deleteMedicine = useCallback((id: string) => {
     setData((prev) => ({ ...prev, medicines: prev.medicines.filter((m) => m.id !== id) }));
+    apiFetch(`/api/medicines/${id}`, { method: "DELETE" }).catch(console.error);
   }, []);
 
   const addBill = useCallback<ErpContextValue["addBill"]>(
@@ -269,7 +286,7 @@ export function ErpProvider({ children }: { children: ReactNode }) {
           customerId,
           customerName: name || "Walk-in",
           customerPhone: phone,
-          items: input.items,
+          items: input.items.map(i => ({...i, id: uid()})) as any,
           subtotal: round(subtotal),
           gstAmount: round(gstAmount),
           total: round(subtotal + gstAmount),
@@ -283,14 +300,24 @@ export function ErpProvider({ children }: { children: ReactNode }) {
         });
         return { ...prev, customers, medicines, bills: [bill, ...prev.bills] };
       });
+      
+      apiFetch("/api/bills", {
+        method: "POST",
+        body: JSON.stringify(bill)
+      }).catch(console.error);
+      
       return bill;
     },
-    [currentUser],
+    [currentUser]
   );
 
   const addCustomer = useCallback<ErpContextValue["addCustomer"]>((name, phone) => {
     const customer: Customer = { id: uid(), name, phone, createdAt: today() };
     setData((prev) => ({ ...prev, customers: [customer, ...prev.customers] }));
+    apiFetch("/api/customers", {
+      method: "POST",
+      body: JSON.stringify(customer)
+    }).catch(console.error);
     return customer;
   }, []);
 
@@ -299,10 +326,15 @@ export function ErpProvider({ children }: { children: ReactNode }) {
       ...prev,
       customers: prev.customers.map((c) => (c.id === id ? { ...c, ...patch } : c)),
     }));
+    apiFetch(`/api/customers/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(patch)
+    }).catch(console.error);
   }, []);
 
   const deleteCustomer = useCallback((id: string) => {
     setData((prev) => ({ ...prev, customers: prev.customers.filter((c) => c.id !== id) }));
+    apiFetch(`/api/customers/${id}`, { method: "DELETE" }).catch(console.error);
   }, []);
 
   const addUser = useCallback<ErpContextValue["addUser"]>(
@@ -321,7 +353,7 @@ export function ErpProvider({ children }: { children: ReactNode }) {
       setData((prev) => ({ ...prev, users: [...prev.users, user] }));
       return { ok: true };
     },
-    [data.users],
+    [data.users]
   );
 
   const updateUser = useCallback<ErpContextValue["updateUser"]>((id, patch) => {

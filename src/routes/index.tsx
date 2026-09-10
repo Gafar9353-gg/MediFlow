@@ -31,13 +31,13 @@ function LoginPage() {
     if (ready && currentUser) navigate({ to: "/dashboard", replace: true });
   }, [ready, currentUser, navigate]);
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!username.trim() || !password) {
       setError("Username and password are required");
       return;
     }
-    const res = login(username, password);
+    const res = await login(username, password);
     if (!res.ok) {
       setError(res.error ?? "Login failed");
       return;

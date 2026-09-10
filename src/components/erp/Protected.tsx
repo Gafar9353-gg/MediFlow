@@ -27,7 +27,7 @@ export function Protected({ roles, children }: { roles: Role[]; children: ReactN
         <h2 className="text-lg font-semibold">Access denied</h2>
         <p className="max-w-sm text-sm text-muted-foreground">
           Your role ({currentUser.role}) does not have permission to view this page.
-        </p>
+        </p>  
       </div>
     );
   }

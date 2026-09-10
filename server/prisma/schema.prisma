@@ -1,0 +1,108 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   // "admin" | "staff"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Medicine {
+  id            String   @id @default(uuid())
+  name          String
+  category      String
+  batchNo       String
+  expiryDate    String
+  purchasePrice Float
+  sellingPrice  Float
+  gst           Float
+  stock         Int
+  rack          String
+  
+  purchaseItems PurchaseItem[]
+  billItems     BillItem[]
+}
+
+model Purchase {
+  id            String   @id @default(uuid())
+  supplierName  String
+  invoiceNumber String
+  date          String
+  subtotal      Float
+  gstAmount     Float
+  total         Float
+  createdBy     String
+  isPaid        Boolean  @default(false)
+  
+  items         PurchaseItem[]
+}
+
+model PurchaseItem {
+  id            String   @id @default(uuid())
+  purchaseId    String
+  purchase      Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  medicineId    String
+  medicine      Medicine @relation(fields: [medicineId], references: [id])
+  
+  name          String
+  category      String
+  batchNo       String
+  expiryDate    String
+  purchasePrice Float
+  sellingPrice  Float
+  gst           Float
+  quantity      Int
+  rack          String
+}
+
+model Bill {
+  id            String   @id @default(uuid())
+  billNo        String   @unique
+  date          String
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  customerName  String
+  customerPhone String
+  subtotal      Float
+  gstAmount     Float
+  total         Float
+  paymentMode   String   // "cash" | "upi"
+  transactionId String?
+  createdBy     String
+  
+  items         BillItem[]
+}
+
+model BillItem {
+  id            String   @id @default(uuid())
+  billId        String
+  bill          Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  medicineId    String
+  medicine      Medicine @relation(fields: [medicineId], references: [id])
+  
+  name          String
+  category      String
+  batchNo       String
+  rack          String
+  price         Float
+  gst           Float
+  quantity      Int
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String
+  createdAt DateTime @default(now())
+  
+  bills     Bill[]
+}
