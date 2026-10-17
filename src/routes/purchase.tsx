@@ -162,7 +162,7 @@ function PurchasePage() {
               <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
           </CardContent>
-        </Card>aa
+        </Card>
 
         <Card>
           <CardHeader>
