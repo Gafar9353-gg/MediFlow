@@ -104,11 +104,21 @@ app.delete("/api/medicines/:id", authMiddleware, async (req, res) => {
 
 // Purchases
 app.post("/api/purchases", authMiddleware, async (req, res) => {
+  console.log("req.user:", req.user); // Debug line
   const { items, ...purchaseData } = req.body;
   try {
+    // Calculate purchase totals
+    const subtotal = items.reduce((sum, item) => sum + (item.purchasePrice * item.quantity), 0);
+    const gstAmount = items.reduce((sum, item) => sum + (item.purchasePrice * item.quantity * item.gst) / 100, 0);
+    const total = subtotal + gstAmount;
+
     const purchase = await prisma.purchase.create({
       data: {
         ...purchaseData,
+        createdBy: req.user.username,
+        subtotal,
+        gstAmount,
+        total,
         items: {
           create: items
         }
